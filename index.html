@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>喵星人性格鉴定书</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Ma Shan Zheng', cursive;
+            background: #FFF5E0;
+            color: #6D4C3D;
+            text-align: center;
+            padding: 0;
+            margin: 0;
+        }
+        .container {
+            max-width: 100%;
+            padding: 20px;
+        }
+        .cat-paw {
+            width: 60px;
+            animation: float 2s infinite alternate;
+        }
+        @keyframes float {
+            from { transform: translateY(0); }
+            to { transform: translateY(-15px); }
+        }
+        .btn {
+            background: #FF9A76;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-size: 18px;
+            color: white;
+            cursor: pointer;
+            margin: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+        }
+        .btn:hover {
+            transform: scale(1.05);
+            background: #FF6B6B;
+        }
+        .result-card {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            margin: 20px auto;
+            max-width: 300px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        }
+        .cat-img {
+            width: 100%;
+            border-radius: 15px;
+            margin: 10px 0;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="app" class="container">
+        <!-- 首页 -->
+        <div v-if="stage === 'home'">
+            <img src="https://img.icons8.com/ios-filled/100/000000/cat-footprint.png" class="cat-paw">
+            <h1>喵星人性格鉴定书</h1>
+            <p>10秒解锁你的天命猫猫<br>不准不准...才怪！🐾</p>
+            <button class="btn" @click="stage = 'select'">立即测喵</button>
+        </div>
+
+        <!-- 测试类型选择 -->
+        <div v-if="stage === 'select'">
+            <h2>请选择你的占卜方式</h2>
+            <button class="btn" @click="startTest('mbti')">🧙‍♀️ MBTI猫格版</button>
+            <button class="btn" @click="startTest('bazi')">🏮 八字吸猫术</button>
+        </div>
+
+        <!-- MBTI测试问题 -->
+        <div v-if="stage === 'test' && testType === 'mbti'">
+            <h3>第 {{ currentQuestion + 1 }} 题/4</h3>
+            <p>{{ mbtiQuestions[currentQuestion].text }}</p>
+            <div v-for="(option, index) in mbtiQuestions[currentQuestion].options" :key="index">
+                <button class="btn" @click="answerQuestion(option.type)">{{ option.text }}</button>
+            </div>
+        </div>
+
+        <!-- 八字测试问题 -->
+        <div v-if="stage === 'test' && testType === 'bazi'">
+            <h3>输入你的出生信息</h3>
+            <input type="date" v-model="birthDate" class="btn" style="width:80%">
+            <button class="btn" @click="calculateBazi">立即测算</button>
+        </div>
+
+        <!-- 结果页 -->
+        <div v-if="stage === 'result'" class="result-card">
+            <h2>【你的本命猫】{{ resultCat.name }}</h2>
+            <img :src="resultCat.image" class="cat-img">
+            <p>🐱 猫格分析：{{ resultCat.description }}<br>
+            💡 适配理由：{{ resultCat.reason }}</p>
+            
+            <button class="btn" @click="shareResult">晒猫族护照</button>
+            <button class="btn" @click="stage = 'home'">再测一次</button>
+            
+            <div v-if="showAd" style="margin-top:20px;font-size:12px;">
+                <p>领养真实猫咪 → <a href="#">XX猫舍</a></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        new Vue({
+            el: '#app',
+            data: {
+                stage: 'home',
+                testType: '',
+                currentQuestion: 0,
+                mbtiType: '',
+                birthDate: '',
+                resultCat: null,
+                showAd: false,
+                mbtiQuestions: [
+                    {
+                        text: "周末你更愿意如何度过？",
+                        options: [
+                            { text: "和猫友聚会（外向E）", type: "E" },
+                            { text: "独自撸猫（内向I）", type: "I" }
+                        ]
+                    },
+                    {
+                        text: "遇到猫咪捣乱时你会？",
+                        options: [
+                            { text: "先拍照发朋友圈（直觉N）", type: "N" },
+                            { text: "立即收拾残局（实感S）", type: "S" }
+                        ]
+                    },
+                    {
+                        text: "选择猫粮时你更注重？",
+                        options: [
+                            { text: "营养成分表（思考T）", type: "T" },
+                            { text: "猫咪吃得开心（情感F）", type: "F" }
+                        ]
+                    },
+                    {
+                        text: "你的养猫计划通常是？",
+                        options: [
+                            { text: "严格按时间表（判断J）", type: "J" },
+                            { text: "看心情随性来（感知P）", type: "P" }
+                        ]
+                    }
+                ],
+                catDatabase: {
+                    "INTJ": {
+                        name: "高冷俄罗斯蓝猫",
+                        image: "https://cdn.pixabay.com/photo/2017/02/20/18/03/cat-2083492_640.jpg",
+                        description: "智商爆表的猫中哲学家",
+                        reason: "你们都是理性至上主义者，擅长用眼神表达'愚蠢的人类'"
+                    },
+                    "ENFP": {
+                        name: "话痨暹罗猫",
+                        image: "https://cdn.pixabay.com/photo/2015/11/16/22/14/cat-1046544_640.jpg",
+                        description: "社交牛逼症患者",
+                        reason: "你们都能在5分钟内和陌生人成为朋友"
+                    },
+                    // 其他MBTI类型猫数据...
+                    "default": {
+                        name: "中华气死猫",
+                        image: "https://cdn.pixabay.com/photo/2014/04/13/20/49/cat-323262_640.jpg",
+                        description: "又懒又馋但治愈力MAX",
+                        reason: "你们组合起来就是'躺平界'的黄金CP"
+                    }
+                }
+            },
+            methods: {
+                startTest(type) {
+                    this.testType = type;
+                    this.stage = 'test';
+                },
+                answerQuestion(type) {
+                    this.mbtiType += type;
+                    if (this.currentQuestion < this.mbtiQuestions.length - 1) {
+                        this.currentQuestion++;
+                    } else {
+                        this.showResult();
+                    }
+                },
+                calculateBazi() {
+                    // 简化的八字计算（实际应调用专业库）
+                    const month = new Date(this.birthDate).getMonth() + 1;
+                    this.mbtiType = month % 2 === 0 ? "ENFP" : "INTJ"; // 示例逻辑
+                    this.showResult();
+                },
+                showResult() {
+                    this.resultCat = this.catDatabase[this.mbtiType] || this.catDatabase["default"];
+                    this.stage = 'result';
+                    setTimeout(() => { this.showAd = true }, 2000);
+                },
+                shareResult() {
+                    alert("已复制分享链接到剪贴板\n实际项目需接入微信SDK");
+                    // 实际应使用微信JS-SDK或navigator.share API
+                }
+            }
+        });
+    </script>
+</body>
+</html>
