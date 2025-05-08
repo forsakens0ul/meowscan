@@ -3,9 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>喵星人性格鉴定书</title>
+    <title>喵星人性格鉴定书 v1.0.0</title>
     <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         body {
             font-family: 'Ma Shan Zheng', cursive;
@@ -59,6 +61,61 @@
         .hidden {
             display: none;
         }
+        .footer {
+            margin-top: 30px;
+            font-size: 14px;
+            color: #888;
+        }
+        .social-links {
+            margin: 15px 0;
+        }
+        .social-links a {
+            color: #6D4C3D;
+            margin: 0 10px;
+            font-size: 20px;
+            text-decoration: none;
+        }
+        .language-selector {
+            margin: 15px 0;
+        }
+        .language-selector select {
+            padding: 8px 15px;
+            border-radius: 20px;
+            border: 1px solid #FF9A76;
+            background: white;
+            color: #6D4C3D;
+            font-family: 'Ma Shan Zheng', cursive;
+        }
+        .stats {
+            font-size: 12px;
+            margin-top: 10px;
+        }
+        .progress-bar {
+            width: 80%;
+            height: 10px;
+            background: #f0f0f0;
+            border-radius: 5px;
+            margin: 20px auto;
+            overflow: hidden;
+        }
+        .progress {
+            height: 100%;
+            background: #FF9A76;
+            transition: width 0.3s;
+        }
+        .star-prompt {
+            margin: 15px 0;
+            font-size: 14px;
+            color: #FF6B6B;
+        }
+        .history-item {
+            background: white;
+            border-radius: 10px;
+            padding: 10px;
+            margin: 10px auto;
+            max-width: 80%;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
     </style>
 </head>
 <body>
@@ -66,46 +123,84 @@
         <!-- 首页 -->
         <div v-if="stage === 'home'">
             <img src="https://img.icons8.com/ios-filled/100/000000/cat-footprint.png" class="cat-paw">
-            <h1>喵星人性格鉴定书</h1>
-            <p>10秒解锁你的天命猫猫<br>不准不准...才怪！🐾</p>
-            <button class="btn" @click="stage = 'select'">立即测喵</button>
+            <h1>{{ translations[language].title }}</h1>
+            <p>{{ translations[language].subtitle }}<br>{{ translations[language].disclaimer }} 🐾</p>
+            <button class="btn" @click="stage = 'select'">{{ translations[language].startTest }}</button>
+            
+            <div class="social-links">
+                <a href="https://github.com/yourusername/cat-personality-test" target="_blank" title="GitHub"><i class="fab fa-github"></i></a>
+                <a href="https://www.xiaohongshu.com/" target="_blank" title="小红书"><i class="fab fa-weixin"></i></a>
+                <a href="#" @click="showHistory = !showHistory" title="历史记录"><i class="fas fa-history"></i></a>
+            </div>
+            
+            <div class="language-selector">
+                <select v-model="language">
+                    <option value="zh">中文</option>
+                    <option value="en">English</option>
+                    <option value="ja">日本語</option>
+                </select>
+            </div>
+            
+            <div class="stats">
+                {{ translations[language].visits }}: {{ visitCount }} | 
+                {{ translations[language].visitors }}: {{ visitorCount }}
+            </div>
+            
+            <div class="star-prompt">
+                <i class="fas fa-star" style="color:#FFD700;"></i> {{ translations[language].ifUseful }}
+            </div>
+            
+            <!-- 历史记录 -->
+            <div v-if="showHistory && testHistory.length > 0" style="margin-top:20px;">
+                <h3>{{ translations[language].history }}</h3>
+                <div v-for="(item, index) in testHistory" :key="index" class="history-item">
+                    <p><strong>{{ item.date }}</strong> - {{ item.catName }}</p>
+                    <button class="btn" @click="viewHistoryResult(index)" style="padding:5px 10px;font-size:12px;">查看详情</button>
+                </div>
+            </div>
         </div>
 
         <!-- 测试类型选择 -->
         <div v-if="stage === 'select'">
-            <h2>请选择你的占卜方式</h2>
-            <button class="btn" @click="startTest('mbti')">🧙‍♀️ MBTI猫格版</button>
-            <button class="btn" @click="startTest('bazi')">🏮 八字吸猫术</button>
+            <h2>{{ translations[language].chooseMethod }}</h2>
+            <button class="btn" @click="startTest('mbti')">🧙‍♀️ {{ translations[language].mbtiCat }}</button>
+            <button class="btn" @click="startTest('bazi')">🏮 {{ translations[language].baziCat }}</button>
+            <button class="btn" @click="stage = 'home'">{{ translations[language].back }}</button>
         </div>
 
         <!-- MBTI测试问题 -->
         <div v-if="stage === 'test' && testType === 'mbti'">
-            <h3>第 {{ currentQuestion + 1 }} 题/4</h3>
+            <h3>{{ translations[language].question }} {{ currentQuestion + 1 }}/{{ mbtiQuestions.length }}</h3>
+            <div class="progress-bar">
+                <div class="progress" :style="{width: ((currentQuestion + 1) / mbtiQuestions.length) * 100 + '%'}"></div>
+            </div>
             <p>{{ mbtiQuestions[currentQuestion].text }}</p>
             <div v-for="(option, index) in mbtiQuestions[currentQuestion].options" :key="index">
                 <button class="btn" @click="answerQuestion(option.type)">{{ option.text }}</button>
             </div>
+            <button class="btn" @click="stage = 'select'" style="background: #ccc;">{{ translations[language].back }}</button>
         </div>
 
         <!-- 八字测试问题 -->
         <div v-if="stage === 'test' && testType === 'bazi'">
-            <h3>输入你的出生信息</h3>
+            <h3>{{ translations[language].enterBirthInfo }}</h3>
             <input type="date" v-model="birthDate" class="btn" style="width:80%">
-            <button class="btn" @click="calculateBazi">立即测算</button>
+            <button class="btn" @click="calculateBazi">{{ translations[language].calculate }}</button>
+            <button class="btn" @click="stage = 'select'" style="background: #ccc;">{{ translations[language].back }}</button>
         </div>
 
         <!-- 结果页 -->
         <div v-if="stage === 'result'" class="result-card">
-            <h2>【你的本命猫】{{ resultCat.name }}</h2>
+            <h2>【{{ translations[language].yourCat }}】{{ resultCat.name }}</h2>
             <img :src="resultCat.image" class="cat-img">
-            <p>🐱 猫格分析：{{ resultCat.description }}<br>
-            💡 适配理由：{{ resultCat.reason }}</p>
+            <p>🐱 {{ translations[language].analysis }}: {{ resultCat.description }}<br>
+            💡 {{ translations[language].reason }}: {{ resultCat.reason }}</p>
             
-            <button class="btn" @click="shareResult">晒猫族护照</button>
-            <button class="btn" @click="stage = 'home'">再测一次</button>
+            <button class="btn" @click="shareResult">{{ translations[language].share }}</button>
+            <button class="btn" @click="stage = 'home'">{{ translations[language].testAgain }}</button>
             
             <div v-if="showAd" style="margin-top:20px;font-size:12px;">
-                <p>领养真实猫咪 → <a href="#">XX猫舍</a></p>
+                <p>{{ translations[language].adopt }} → <a href="#">{{ translations[language].catShelter }}</a></p>
             </div>
         </div>
     </div>
@@ -121,6 +216,88 @@
                 birthDate: '',
                 resultCat: null,
                 showAd: false,
+                showHistory: false,
+                language: 'zh',
+                visitCount: 0,
+                visitorCount: 0,
+                testHistory: [],
+                translations: {
+                    zh: {
+                        title: '喵星人性格鉴定书',
+                        subtitle: '10秒解锁你的天命猫猫',
+                        disclaimer: '不准不准...才怪！',
+                        startTest: '立即测喵',
+                        chooseMethod: '请选择你的占卜方式',
+                        mbtiCat: 'MBTI猫格版',
+                        baziCat: '八字吸猫术',
+                        back: '返回',
+                        question: '第',
+                        enterBirthInfo: '输入你的出生信息',
+                        calculate: '立即测算',
+                        yourCat: '你的本命猫',
+                        analysis: '猫格分析',
+                        reason: '适配理由',
+                        share: '晒猫族护照',
+                        testAgain: '再测一次',
+                        adopt: '领养真实猫咪',
+                        catShelter: 'XX猫舍',
+                        version: '版本',
+                        ifUseful: '如果觉得好用，请给项目点个⭐Star吧！',
+                        visits: '访问量',
+                        visitors: '访客数',
+                        history: '历史记录'
+                    },
+                    en: {
+                        title: 'Cat Personality Test',
+                        subtitle: 'Discover your soulmate cat in 10 seconds',
+                        disclaimer: 'Not accurate... just kidding!',
+                        startTest: 'Start Test',
+                        chooseMethod: 'Choose your divination method',
+                        mbtiCat: 'MBTI Cat Version',
+                        baziCat: 'Bazi Catology',
+                        back: 'Back',
+                        question: 'Question',
+                        enterBirthInfo: 'Enter your birth information',
+                        calculate: 'Calculate Now',
+                        yourCat: 'Your Destiny Cat',
+                        analysis: 'Personality Analysis',
+                        reason: 'Matching Reason',
+                        share: 'Share Result',
+                        testAgain: 'Test Again',
+                        adopt: 'Adopt a real cat',
+                        catShelter: 'XX Cat Shelter',
+                        version: 'Version',
+                        ifUseful: 'If you find it useful, please give us a ⭐Star!',
+                        visits: 'Visits',
+                        visitors: 'Visitors',
+                        history: 'History'
+                    },
+                    ja: {
+                        title: '猫の性格診断',
+                        subtitle: '10秒であなたにぴったりの猫を発見',
+                        disclaimer: '当たらない...嘘です！',
+                        startTest: '診断を開始',
+                        chooseMethod: '占い方法を選択',
+                        mbtiCat: 'MBTI猫バージョン',
+                        baziCat: '八字猫占い',
+                        back: '戻る',
+                        question: '質問',
+                        enterBirthInfo: '生年月日を入力',
+                        calculate: '診断する',
+                        yourCat: 'あなたにぴったりの猫',
+                        analysis: '性格分析',
+                        reason: '相性の理由',
+                        share: '結果をシェア',
+                        testAgain: 'もう一度診断',
+                        adopt: '実際の猫を迎える',
+                        catShelter: 'XX猫シェルター',
+                        version: 'バージョン',
+                        ifUseful: '気に入ったら⭐スターをお願いします！',
+                        visits: '訪問数',
+                        visitors: '訪問者数',
+                        history: '履歴'
+                    }
+                },
                 mbtiQuestions: [
                     {
                         text: "周末你更愿意如何度过？",
@@ -149,6 +326,34 @@
                             { text: "严格按时间表（判断J）", type: "J" },
                             { text: "看心情随性来（感知P）", type: "P" }
                         ]
+                    },
+                    {
+                        text: "猫咪生病时你的第一反应是？",
+                        options: [
+                            { text: "冷静分析症状（思考T）", type: "T" },
+                            { text: "非常担心焦虑（情感F）", type: "F" }
+                        ]
+                    },
+                    {
+                        text: "你更喜欢哪种猫咪？",
+                        options: [
+                            { text: "活泼好动的（外向E）", type: "E" },
+                            { text: "安静慵懒的（内向I）", type: "I" }
+                        ]
+                    },
+                    {
+                        text: "给猫咪拍照时你会？",
+                        options: [
+                            { text: "精心设计场景（判断J）", type: "J" },
+                            { text: "捕捉自然瞬间（感知P）", type: "P" }
+                        ]
+                    },
+                    {
+                        text: "看到流浪猫时你会？",
+                        options: [
+                            { text: "想象它的故事（直觉N）", type: "N" },
+                            { text: "观察它的状态（实感S）", type: "S" }
+                        ]
                     }
                 ],
                 catDatabase: {
@@ -158,13 +363,96 @@
                         description: "智商爆表的猫中哲学家",
                         reason: "你们都是理性至上主义者，擅长用眼神表达'愚蠢的人类'"
                     },
+                    "INTP": {
+                        name: "思考者苏格兰折耳猫",
+                        image: "https://cdn.pixabay.com/photo/2015/03/27/13/16/cat-694730_640.jpg",
+                        description: "好奇心旺盛的猫中科学家",
+                        reason: "你们都喜欢独立思考，常常陷入自己的世界"
+                    },
+                    "ENTJ": {
+                        name: "领袖型缅因猫",
+                        image: "https://cdn.pixabay.com/photo/2017/07/25/01/22/cat-2536662_640.jpg",
+                        description: "气场强大的猫中CEO",
+                        reason: "你们都有领导气质，喜欢掌控局面"
+                    },
+                    "ENTP": {
+                        name: "辩论家德文卷毛猫",
+                        image: "https://cdn.pixabay.com/photo/2014/04/13/20/49/cat-323262_640.jpg",
+                        description: "机灵古怪的猫中发明家",
+                        reason: "你们都能用创意和幽默化解尴尬"
+                    },
+                    "INFJ": {
+                        name: "治愈系布偶猫",
+                        image: "https://cdn.pixabay.com/photo/2015/11/16/14/43/cat-1045782_640.jpg",
+                        description: "温柔体贴的猫中心理咨询师",
+                        reason: "你们都能敏锐察觉他人情绪"
+                    },
+                    "INFP": {
+                        name: "理想主义暹罗猫",
+                        image: "https://cdn.pixabay.com/photo/2015/11/16/22/14/cat-1046544_640.jpg",
+                        description: "情感丰富的猫中诗人",
+                        reason: "你们都有丰富的内心世界"
+                    },
+                    "ENFJ": {
+                        name: "教育家阿比西尼亚猫",
+                        image: "https://cdn.pixabay.com/photo/2017/11/09/21/41/cat-2934720_640.jpg",
+                        description: "热情洋溢的猫中导师",
+                        reason: "你们都喜欢鼓励和帮助他人"
+                    },
                     "ENFP": {
                         name: "话痨暹罗猫",
-                        image: "https://cdn.pixabay.com/photo/2015/11/16/22/14/cat-1046544_640.jpg",
+                        image: "https://cdn.pixabay.com/photo/2018/05/07/10/48/cat-3380960_640.jpg",
                         description: "社交牛逼症患者",
                         reason: "你们都能在5分钟内和陌生人成为朋友"
                     },
-                    // 其他MBTI类型猫数据...
+                    "ISTJ": {
+                        name: "务实型英国短毛猫",
+                        image: "https://cdn.pixabay.com/photo/2014/03/29/09/17/cat-300572_640.jpg",
+                        description: "可靠守时的猫中公务员",
+                        reason: "你们都重视传统和规则"
+                    },
+                    "ISFJ": {
+                        name: "守护者波斯猫",
+                        image: "https://cdn.pixabay.com/photo/2015/01/31/12/36/cat-618470_640.jpg",
+                        description: "温柔顾家的猫中护士",
+                        reason: "你们都乐于照顾他人"
+                    },
+                    "ESTJ": {
+                        name: "管理者美国短毛猫",
+                        image: "https://cdn.pixabay.com/photo/2017/03/14/14/49/cat-2143332_640.jpg",
+                        description: "效率至上的猫中项目经理",
+                        reason: "你们都擅长组织和执行"
+                    },
+                    "ESFJ": {
+                        name: "照顾者加菲猫",
+                        image: "https://cdn.pixabay.com/photo/2015/11/16/22/14/cat-1046544_640.jpg",
+                        description: "温暖贴心的猫中派对策划",
+                        reason: "你们都热爱社交和照顾他人"
+                    },
+                    "ISTP": {
+                        name: "巧匠型豹猫",
+                        image: "https://cdn.pixabay.com/photo/2017/01/20/21/22/cat-1996421_640.jpg",
+                        description: "冷静沉着的猫中机械师",
+                        reason: "你们都擅长解决实际问题"
+                    },
+                    "ISFP": {
+                        name: "艺术家金吉拉猫",
+                        image: "https://cdn.pixabay.com/photo/2014/04/13/20/49/cat-323262_640.jpg",
+                        description: "敏感细腻的猫中画家",
+                        reason: "你们都重视当下的美感体验"
+                    },
+                    "ESTP": {
+                        name: "冒险家孟加拉猫",
+                        image: "https://cdn.pixabay.com/photo/2015/04/23/21/59/cat-736877_640.jpg",
+                        description: "活力四射的猫中运动员",
+                        reason: "你们都热爱冒险和刺激"
+                    },
+                    "ESFP": {
+                        name: "表演者土耳其安哥拉猫",
+                        image: "https://cdn.pixabay.com/photo/2015/01/31/12/36/cat-618470_640.jpg",
+                        description: "魅力十足的猫中明星",
+                        reason: "你们都擅长活跃气氛"
+                    },
                     "default": {
                         name: "中华气死猫",
                         image: "https://cdn.pixabay.com/photo/2014/04/13/20/49/cat-323262_640.jpg",
@@ -177,6 +465,11 @@
                 startTest(type) {
                     this.testType = type;
                     this.stage = 'test';
+                    this.currentQuestion = 0;
+                    this.mbtiType = '';
+                    
+                    // 记录访问量
+                    this.recordVisit();
                 },
                 answerQuestion(type) {
                     this.mbtiType += type;
@@ -187,19 +480,106 @@
                     }
                 },
                 calculateBazi() {
+                    if (!this.birthDate) {
+                        alert(this.translations[this.language].enterBirthInfo);
+                        return;
+                    }
                     // 简化的八字计算（实际应调用专业库）
                     const month = new Date(this.birthDate).getMonth() + 1;
-                    this.mbtiType = month % 2 === 0 ? "ENFP" : "INTJ"; // 示例逻辑
+                    const day = new Date(this.birthDate).getDate();
+                    
+                    // 根据出生日期生成MBTI类型
+                    const types = ["INTJ", "INTP", "ENTJ", "ENTP", "INFJ", "INFP", "ENFJ", "ENFP", 
+                                  "ISTJ", "ISFJ", "ESTJ", "ESFJ", "ISTP", "ISFP", "ESTP", "ESFP"];
+                    const index = (month * day) % types.length;
+                    this.mbtiType = types[index];
+                    
                     this.showResult();
                 },
                 showResult() {
                     this.resultCat = this.catDatabase[this.mbtiType] || this.catDatabase["default"];
                     this.stage = 'result';
                     setTimeout(() => { this.showAd = true }, 2000);
+                    
+                    // 保存测试结果到历史记录
+                    this.saveToHistory();
                 },
                 shareResult() {
-                    alert("已复制分享链接到剪贴板\n实际项目需接入微信SDK");
-                    // 实际应使用微信JS-SDK或navigator.share API
+                    alert(this.translations[this.language].share + "\n" + 
+                          "实际项目需接入微信SDK或分享API");
+                },
+                saveToHistory() {
+                    const historyItem = {
+                        date: new Date().toLocaleString(),
+                        catName: this.resultCat.name,
+                        mbtiType: this.mbtiType,
+                        result: this.resultCat
+                    };
+                    
+                    this.testHistory.unshift(historyItem);
+                    localStorage.setItem('catTestHistory', JSON.stringify(this.testHistory));
+                },
+                viewHistoryResult(index) {
+                    this.resultCat = this.testHistory[index].result;
+                    this.stage = 'result';
+                },
+                recordVisit() {
+                    // 使用浏览器指纹识别访客
+                    const visitorId = this.getVisitorId();
+                    
+                    // 检查是否是新访客
+                    const lastVisit = localStorage.getItem('lastVisit');
+                    const now = new Date().getTime();
+                    
+                    // 更新访问量
+                    this.visitCount = parseInt(localStorage.getItem('visitCount') || 0) + 1;
+                    localStorage.setItem('visitCount', this.visitCount);
+                    
+                    // 如果是新访客或超过24小时未访问
+                    if (!lastVisit || (now - lastVisit) > 24 * 60 * 60 * 1000) {
+                        this.visitorCount = parseInt(localStorage.getItem('visitorCount') || 0) + 1;
+                        localStorage.setItem('visitorCount', this.visitorCount);
+                        localStorage.setItem('lastVisit', now);
+                    }
+                    
+                    // 实际项目中应该发送到后端服务器进行更准确的统计
+                    // this.sendStatsToServer(visitorId);
+                },
+                getVisitorId() {
+                    // 生成简单的访客ID（实际项目应使用更复杂的指纹算法）
+                    let visitorId = localStorage.getItem('visitorId');
+                    if (!visitorId) {
+                        visitorId = 'visitor-' + Math.random().toString(36).substr(2, 9);
+                        localStorage.setItem('visitorId', visitorId);
+                    }
+                    return visitorId;
+                },
+                loadStats() {
+                    // 从本地存储加载统计数据
+                    this.visitCount = parseInt(localStorage.getItem('visitCount') || 0);
+                    this.visitorCount = parseInt(localStorage.getItem('visitorCount') || 0);
+                    
+                    // 加载历史记录
+                    const savedHistory = localStorage.getItem('catTestHistory');
+                    if (savedHistory) {
+                        this.testHistory = JSON.parse(savedHistory);
+                    }
+                }
+            },
+            mounted() {
+                // 从本地存储加载语言偏好
+                const savedLang = localStorage.getItem('catTestLang');
+                if (savedLang) this.language = savedLang;
+                
+                // 加载统计数据和历史记录
+                this.loadStats();
+                
+                // 初始记录访问
+                this.recordVisit();
+            },
+            watch: {
+                language(newLang) {
+                    localStorage.setItem('catTestLang', newLang);
                 }
             }
         });
