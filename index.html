@@ -467,22 +467,43 @@
             },
             methods: {
                 startTest(type) {
-                    this.testType = type;
-                    this.stage = 'test';
-                    this.currentQuestion = 0;
-                    this.mbtiType = '';
-                    
-                    // 记录访问量
-                    this.recordVisit();
-                },
-                answerQuestion(type) {
-                    this.mbtiType += type;
-                    if (this.currentQuestion < this.mbtiQuestions.length - 1) {
-                        this.currentQuestion++;
-                    } else {
-                        this.showResult();
-                    }
-                },
+        this.testType = type;
+        this.stage = 'test';
+        this.currentQuestion = 0;
+        this.mbtiType = '';
+        // 初始化维度统计
+        this.mbtiCounts = {
+            E: 0,
+            I: 0,
+            N: 0,
+            S: 0,
+            T: 0,
+            F: 0,
+            J: 0,
+            P: 0
+        };
+    },
+    answerQuestion(type) {
+        // 统计每个维度的选择次数
+        this.mbtiCounts[type]++;
+        
+        if (this.currentQuestion < this.mbtiQuestions.length - 1) {
+            this.currentQuestion++;
+        } else {
+            // 根据统计结果确定最终MBTI类型
+            this.determineMBTIType();
+        }
+    },
+    determineMBTIType() {
+        // 根据多数结果确定每个维度的类型
+        const EI = this.mbtiCounts.E > this.mbtiCounts.I ? 'E' : 'I';
+        const NS = this.mbtiCounts.N > this.mbtiCounts.S ? 'N' : 'S';
+        const TF = this.mbtiCounts.T > this.mbtiCounts.F ? 'T' : 'F';
+        const JP = this.mbtiCounts.J > this.mbtiCounts.P ? 'J' : 'P';
+        
+        this.mbtiType = EI + NS + TF + JP;
+        this.showResult();
+    },
                 calculateBazi() {
                     if (!this.birthDate) {
                         alert(this.translations[this.language].enterBirthInfo);
