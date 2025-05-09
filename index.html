@@ -178,9 +178,9 @@
             <div class="progress-bar">
                 <div class="progress" :style="{width: ((currentQuestion + 1) / mbtiQuestions.length) * 100 + '%'}"></div>
             </div>
-            <p>{{ mbtiQuestions[currentQuestion].text }}</p>
+            <p>{{ mbtiQuestions[currentQuestion].text[language] }}</p>
             <div v-for="(option, index) in mbtiQuestions[currentQuestion].options" :key="index">
-                <button class="btn" @click="answerQuestion(option.type)">{{ option.text }}</button>
+                <button class="btn" @click="answerQuestion(option.type)">{{ option.text[language] }}</button>
             </div>
             <button class="btn" @click="stage = 'select'" style="background: #ccc;">{{ translations[language].back }}</button>
         </div>
@@ -195,10 +195,10 @@
 
         <!-- 结果页 -->
         <div v-if="stage === 'result'" class="result-card">
-            <h2>【{{ translations[language].yourCat }}】{{ resultCat.name }}</h2>
+            <h2>【{{ translations[language].yourCat }}】{{ resultCat.name[language] }}</h2>
             <img :src="resultCat.image" class="cat-img">
-            <p>🐱 {{ translations[language].analysis }}: {{ resultCat.description }}<br>
-            💡 {{ translations[language].reason }}: {{ resultCat.reason }}</p>
+            <p>🐱 {{ translations[language].analysis }}: {{ resultCat.description[language] }}<br>
+            💡 {{ translations[language].reason }}: {{ resultCat.reason[language] }}</p>
             
             <button class="btn" @click="shareResult">{{ translations[language].share }}</button>
             <button class="btn" @click="stage = 'home'">{{ translations[language].testAgain }}</button>
@@ -274,7 +274,8 @@
                         ifUseful: 'If you find it useful, please give us a ⭐Star!',
                         visits: 'Visits',
                         visitors: 'Visitors',
-                        history: 'History'
+                        history: 'History',
+                        
                     },
                     ja: {
                         title: '猫の性格診断',
@@ -303,167 +304,312 @@
                     }
                 },
                 mbtiQuestions: [
-                    {
-                        text: "周末你更愿意如何度过？",
-                        options: [
-                            { text: "和猫友聚会（外向E）", type: "E" },
-                            { text: "独自撸猫（内向I）", type: "I" }
-                        ]
-                    },
-                    {
-                        text: "遇到猫咪捣乱时你会？",
-                        options: [
-                            { text: "先拍照发朋友圈（直觉N）", type: "N" },
-                            { text: "立即收拾残局（实感S）", type: "S" }
-                        ]
-                    },
-                    {
-                        text: "选择猫粮时你更注重？",
-                        options: [
-                            { text: "营养成分表（思考T）", type: "T" },
-                            { text: "猫咪吃得开心（情感F）", type: "F" }
-                        ]
-                    },
-                    {
-                        text: "你的养猫计划通常是？",
-                        options: [
-                            { text: "严格按时间表（判断J）", type: "J" },
-                            { text: "看心情随性来（感知P）", type: "P" }
-                        ]
-                    },
-                    {
-                        text: "猫咪生病时你的第一反应是？",
-                        options: [
-                            { text: "冷静分析症状（思考T）", type: "T" },
-                            { text: "非常担心焦虑（情感F）", type: "F" }
-                        ]
-                    },
-                    {
-                        text: "你更喜欢哪种猫咪？",
-                        options: [
-                            { text: "活泼好动的（外向E）", type: "E" },
-                            { text: "安静慵懒的（内向I）", type: "I" }
-                        ]
-                    },
-                    {
-                        text: "给猫咪拍照时你会？",
-                        options: [
-                            { text: "精心设计场景（判断J）", type: "J" },
-                            { text: "捕捉自然瞬间（感知P）", type: "P" }
-                        ]
-                    },
-                    {
-                        text: "看到流浪猫时你会？",
-                        options: [
-                            { text: "想象它的故事（直觉N）", type: "N" },
-                            { text: "观察它的状态（实感S）", type: "S" }
-                        ]
-                    }
-                ],
+    {
+        text: {
+            zh: "周末你更愿意如何度过？",
+            en: "How would you prefer to spend your weekend?",
+            ja: "週末はどのように過ごしたいですか？"
+        },
+        options: [
+            { 
+                text: {
+                    zh: "和猫友聚会（外向E）",
+                    en: "Hang out with cat friends (Extrovert E)",
+                    ja: "猫友達と集まる（外向型E）"
+                },
+                type: "E" 
+            },
+            { 
+                text: {
+                    zh: "独自撸猫（内向I）",
+                    en: "Pet cats alone (Introvert I)",
+                    ja: "一人で猫を撫でる（内向型I）"
+                },
+                type: "I" 
+            }
+        ]
+    },
+    {
+        text: {
+            zh: "遇到猫咪捣乱时你会？",
+            en: "When your cat makes trouble, you will?",
+            ja: "猫がいたずらした時、あなたは？"
+        },
+        options: [
+            { 
+                text: {
+                    zh: "先拍照发朋友圈（直觉N）",
+                    en: "Take photos and post first (Intuition N)",
+                    ja: "まず写真を撮ってSNSに投稿（直観N）"
+                },
+                type: "N" 
+            },
+            { 
+                text: {
+                    zh: "立即收拾残局（实感S）",
+                    en: "Clean up immediately (Sensing S)",
+                    ja: "すぐに後片付けをする（感覚S）"
+                },
+                type: "S" 
+            }
+        ]
+    },
+    {
+        text: {
+            zh: "选择猫粮时你更注重？",
+            en: "When choosing cat food, you pay more attention to?",
+            ja: "キャットフードを選ぶ時、より重視するのは？"
+        },
+        options: [
+            { 
+                text: {
+                    zh: "营养成分表（思考T）",
+                    en: "Nutrition facts (Thinking T)",
+                    ja: "栄養成分表（思考T）"
+                },
+                type: "T" 
+            },
+            { 
+                text: {
+                    zh: "猫咪吃得开心（情感F）",
+                    en: "Cat's enjoyment (Feeling F)",
+                    ja: "猫が喜んで食べる様子（感情F）"
+                },
+                type: "F" 
+            }
+        ]
+    },
+    {
+        text: {
+            zh: "你的养猫计划通常是？",
+            en: "Your cat care routine is usually?",
+            ja: "あなたの猫のお世話の計画は通常？"
+        },
+        options: [
+            { 
+                text: {
+                    zh: "严格按时间表（判断J）",
+                    en: "Strictly follow schedule (Judging J)",
+                    ja: "厳密にスケジュール通り（判断J）"
+                },
+                type: "J" 
+            },
+            { 
+                text: {
+                    zh: "看心情随性来（感知P）",
+                    en: "Flexible based on mood (Perceiving P)",
+                    ja: "気分で臨機応変に（知覚P）"
+                },
+                type: "P" 
+            }
+        ]
+    },
+    {
+        text: {
+            zh: "猫咪生病时你的第一反应是？",
+            en: "When your cat gets sick, your first reaction is?",
+            ja: "猫が病気の時、あなたの最初の反応は？"
+        },
+        options: [
+            { 
+                text: {
+                    zh: "冷静分析症状（思考T）",
+                    en: "Calmly analyze symptoms (Thinking T)",
+                    ja: "冷静に症状を分析（思考T）"
+                },
+                type: "T" 
+            },
+            { 
+                text: {
+                    zh: "非常担心焦虑（情感F）",
+                    en: "Worry and feel anxious (Feeling F)",
+                    ja: "とても心配で不安になる（感情F）"
+                },
+                type: "F" 
+            }
+        ]
+    },
+    {
+        text: {
+            zh: "你更喜欢哪种猫咪？",
+            en: "Which type of cat do you prefer?",
+            ja: "どのタイプの猫が好きですか？"
+        },
+        options: [
+            { 
+                text: {
+                    zh: "活泼好动的（外向E）",
+                    en: "Active and playful (Extrovert E)",
+                    ja: "活発で遊び好き（外向型E）"
+                },
+                type: "E" 
+            },
+            { 
+                text: {
+                    zh: "安静慵懒的（内向I）",
+                    en: "Quiet and lazy (Introvert I)",
+                    ja: "静かでのんびり（内向型I）"
+                },
+                type: "I" 
+            }
+        ]
+    },
+    {
+        text: {
+            zh: "给猫咪拍照时你会？",
+            en: "When taking photos of cats, you will?",
+            ja: "猫の写真を撮る時、あなたは？"
+        },
+        options: [
+            { 
+                text: {
+                    zh: "精心设计场景（判断J）",
+                    en: "Carefully design the scene (Judging J)",
+                    ja: "念入りにシーンを設計（判断J）"
+                },
+                type: "J" 
+            },
+            { 
+                text: {
+                    zh: "捕捉自然瞬间（感知P）",
+                    en: "Capture natural moments (Perceiving P)",
+                    ja: "自然な瞬間を捉える（知覚P）"
+                },
+                type: "P" 
+            }
+        ]
+    },
+    {
+        text: {
+            zh: "看到流浪猫时你会？",
+            en: "When you see a stray cat, you will?",
+            ja: "野良猫を見かけた時、あなたは？"
+        },
+        options: [
+            { 
+                text: {
+                    zh: "想象它的故事（直觉N）",
+                    en: "Imagine its story (Intuition N)",
+                    ja: "その猫の物語を想像する（直観N）"
+                },
+                type: "N" 
+            },
+            { 
+                text: {
+                    zh: "观察它的状态（实感S）",
+                    en: "Observe its condition (Sensing S)",
+                    ja: "その猫の状態を観察する（感覚S）"
+                },
+                type: "S" 
+            }
+        ]
+    }
+],
                 catDatabase: {
-                    "INTJ": {
-                        name: "高冷俄罗斯蓝猫",
-                        image: "https://cdn.pixabay.com/photo/2017/02/20/18/03/cat-2083492_640.jpg",
-                        description: "智商爆表的猫中哲学家",
-                        reason: "你们都是理性至上主义者，擅长用眼神表达'愚蠢的人类'"
-                    },
-                    "INTP": {
-                        name: "思考者苏格兰折耳猫",
-                        image: "https://cdn.pixabay.com/photo/2015/03/27/13/16/cat-694730_640.jpg",
-                        description: "好奇心旺盛的猫中科学家",
-                        reason: "你们都喜欢独立思考，常常陷入自己的世界"
-                    },
-                    "ENTJ": {
-                        name: "领袖型缅因猫",
-                        image: "https://cdn.pixabay.com/photo/2017/07/25/01/22/cat-2536662_640.jpg",
-                        description: "气场强大的猫中CEO",
-                        reason: "你们都有领导气质，喜欢掌控局面"
-                    },
-                    "ENTP": {
-                        name: "辩论家德文卷毛猫",
-                        image: "https://cdn.pixabay.com/photo/2014/04/13/20/49/cat-323262_640.jpg",
-                        description: "机灵古怪的猫中发明家",
-                        reason: "你们都能用创意和幽默化解尴尬"
-                    },
-                    "INFJ": {
-                        name: "治愈系布偶猫",
-                        image: "https://cdn.pixabay.com/photo/2015/11/16/14/43/cat-1045782_640.jpg",
-                        description: "温柔体贴的猫中心理咨询师",
-                        reason: "你们都能敏锐察觉他人情绪"
-                    },
-                    "INFP": {
-                        name: "理想主义暹罗猫",
-                        image: "https://cdn.pixabay.com/photo/2015/11/16/22/14/cat-1046544_640.jpg",
-                        description: "情感丰富的猫中诗人",
-                        reason: "你们都有丰富的内心世界"
-                    },
-                    "ENFJ": {
-                        name: "教育家阿比西尼亚猫",
-                        image: "https://cdn.pixabay.com/photo/2017/11/09/21/41/cat-2934720_640.jpg",
-                        description: "热情洋溢的猫中导师",
-                        reason: "你们都喜欢鼓励和帮助他人"
-                    },
-                    "ENFP": {
-                        name: "话痨暹罗猫",
-                        image: "https://cdn.pixabay.com/photo/2018/05/07/10/48/cat-3380960_640.jpg",
-                        description: "社交牛逼症患者",
-                        reason: "你们都能在5分钟内和陌生人成为朋友"
-                    },
-                    "ISTJ": {
-                        name: "务实型英国短毛猫",
-                        image: "https://cdn.pixabay.com/photo/2014/03/29/09/17/cat-300572_640.jpg",
-                        description: "可靠守时的猫中公务员",
-                        reason: "你们都重视传统和规则"
-                    },
-                    "ISFJ": {
-                        name: "守护者波斯猫",
-                        image: "https://cdn.pixabay.com/photo/2015/01/31/12/36/cat-618470_640.jpg",
-                        description: "温柔顾家的猫中护士",
-                        reason: "你们都乐于照顾他人"
-                    },
-                    "ESTJ": {
-                        name: "管理者美国短毛猫",
-                        image: "https://cdn.pixabay.com/photo/2017/03/14/14/49/cat-2143332_640.jpg",
-                        description: "效率至上的猫中项目经理",
-                        reason: "你们都擅长组织和执行"
-                    },
-                    "ESFJ": {
-                        name: "照顾者加菲猫",
-                        image: "https://cdn.pixabay.com/photo/2015/11/16/22/14/cat-1046544_640.jpg",
-                        description: "温暖贴心的猫中派对策划",
-                        reason: "你们都热爱社交和照顾他人"
-                    },
-                    "ISTP": {
-                        name: "巧匠型豹猫",
-                        image: "https://cdn.pixabay.com/photo/2017/01/20/21/22/cat-1996421_640.jpg",
-                        description: "冷静沉着的猫中机械师",
-                        reason: "你们都擅长解决实际问题"
-                    },
-                    "ISFP": {
-                        name: "艺术家金吉拉猫",
-                        image: "https://cdn.pixabay.com/photo/2014/04/13/20/49/cat-323262_640.jpg",
-                        description: "敏感细腻的猫中画家",
-                        reason: "你们都重视当下的美感体验"
-                    },
-                    "ESTP": {
-                        name: "冒险家孟加拉猫",
-                        image: "https://cdn.pixabay.com/photo/2015/04/23/21/59/cat-736877_640.jpg",
-                        description: "活力四射的猫中运动员",
-                        reason: "你们都热爱冒险和刺激"
-                    },
-                    "ESFP": {
-                        name: "表演者土耳其安哥拉猫",
-                        image: "https://cdn.pixabay.com/photo/2015/01/31/12/36/cat-618470_640.jpg",
-                        description: "魅力十足的猫中明星",
-                        reason: "你们都擅长活跃气氛"
-                    },
-                    "default": {
-                        name: "中华气死猫",
-                        image: "https://cdn.pixabay.com/photo/2014/04/13/20/49/cat-323262_640.jpg",
-                        description: "又懒又馋但治愈力MAX",
-                        reason: "你们组合起来就是'躺平界'的黄金CP"
-                    }
-                }
+                
+    "INTJ": {
+        name: {zh: "高冷俄罗斯蓝猫", en: "Aloof Russian Blue", ja: "クールなロシアンブルー"},
+        image: "https://cdn.pixabay.com/photo/2017/02/20/18/03/cat-2083492_640.jpg",
+        description: {zh: "智商爆表的猫中哲学家", en: "The feline philosopher with exceptional IQ", ja: "知能指数が高い猫の哲学者"},
+        reason: {zh: "你们都是理性至上主义者，擅长用眼神表达'愚蠢的人类'", en: "You are both rationalists, good at expressing 'stupid humans' with your eyes", ja: "あなたたちは理性至上主義者で、目で「愚かな人間」を表現するのが得意です"}
+    },
+    "INTP": {
+        name: {zh: "思考者苏格兰折耳猫", en: "Thinker Scottish Fold", ja: "思想家のスコティッシュフォールド"},
+        image: "https://cdn.pixabay.com/photo/2015/03/27/13/16/cat-694730_640.jpg",
+        description: {zh: "好奇心旺盛的猫中科学家", en: "The feline scientist with endless curiosity", ja: "好奇心旺盛な猫の科学者"},
+        reason: {zh: "你们都喜欢独立思考，常常陷入自己的世界", en: "You both enjoy independent thinking and often get lost in your own world", ja: "あなたたちは独立した思考が好きで、よく自分の世界に没頭します"}
+    },
+    "ENTJ": {
+        name: {zh: "领袖型缅因猫", en: "Leader Maine Coon", ja: "リーダータイプのメインクーン"},
+        image: "https://cdn.pixabay.com/photo/2017/07/25/01/22/cat-2536662_640.jpg",
+        description: {zh: "气场强大的猫中CEO", en: "The feline CEO with powerful presence", ja: "存在感が強い猫のCEO"},
+        reason: {zh: "你们都有领导气质，喜欢掌控局面", en: "You both have leadership qualities and like to control situations", ja: "あなたたちはリーダーシップの資質があり、状況をコントロールするのが好きです"}
+    },
+    "ENTP": {
+        name: {zh: "辩论家德文卷毛猫", en: "Debater Devon Rex", ja: "討論家のデボンレックス"},
+        image: "https://cdn.pixabay.com/photo/2014/04/13/20/49/cat-323262_640.jpg",
+        description: {zh: "机灵古怪的猫中发明家", en: "The feline inventor with clever eccentricity", ja: "賢く風変わりな猫の発明家"},
+        reason: {zh: "你们都能用创意和幽默化解尴尬", en: "You both can use creativity and humor to defuse awkwardness", ja: "あなたたちは創造性とユーモアで気まずさを解消できます"}
+    },
+    "INFJ": {
+        name: {zh: "治愈系布偶猫", en: "Healer Ragdoll", ja: "癒し系のラグドール"},
+        image: "https://cdn.pixabay.com/photo/2015/11/16/14/43/cat-1045782_640.jpg",
+        description: {zh: "温柔体贴的猫中心理咨询师", en: "The feline counselor with gentle care", ja: "優しく思いやりがある猫のカウンセラー"},
+        reason: {zh: "你们都能敏锐察觉他人情绪", en: "You both can keenly perceive others' emotions", ja: "あなたたちは他人の感情を鋭く察知できます"}
+    },
+    "INFP": {
+        name: {zh: "理想主义暹罗猫", en: "Idealist Siamese", ja: "理想主義者のシャム猫"},
+        image: "https://cdn.pixabay.com/photo/2015/11/16/22/14/cat-1046544_640.jpg",
+        description: {zh: "情感丰富的猫中诗人", en: "The feline poet with rich emotions", ja: "感情豊かな猫の詩人"},
+        reason: {zh: "你们都有丰富的内心世界", en: "You both have rich inner worlds", ja: "あなたたちは豊かな内面世界を持っています"}
+    },
+    "ENFJ": {
+        name: {zh: "教育家阿比西尼亚猫", en: "Educator Abyssinian", ja: "教育者のアビシニアン"},
+        image: "https://cdn.pixabay.com/photo/2017/11/09/21/41/cat-2934720_640.jpg",
+        description: {zh: "热情洋溢的猫中导师", en: "The feline mentor with enthusiastic passion", ja: "情熱的な猫のメンター"},
+        reason: {zh: "你们都喜欢鼓励和帮助他人", en: "You both enjoy encouraging and helping others", ja: "あなたたちは他人を励まし助けるのが好きです"}
+    },
+    "ENFP": {
+        name: {zh: "话痨暹罗猫", en: "Chatterbox Siamese", ja: "おしゃべりなシャム猫"},
+        image: "https://cdn.pixabay.com/photo/2018/05/07/10/48/cat-3380960_640.jpg",
+        description: {zh: "社交牛逼症患者", en: "The feline with extreme social skills", ja: "社交性抜群の猫"},
+        reason: {zh: "你们都能在5分钟内和陌生人成为朋友", en: "You both can become friends with strangers within 5 minutes", ja: "あなたたちは5分以内に見知らぬ人と友達になれます"}
+    },
+    "ISTJ": {
+        name: {zh: "务实型英国短毛猫", en: "Practical British Shorthair", ja: "現実主義者のブリティッシュショートヘア"},
+        image: "https://cdn.pixabay.com/photo/2014/03/29/09/17/cat-300572_640.jpg",
+        description: {zh: "可靠守时的猫中公务员", en: "The feline civil servant who's reliable and punctual", ja: "信頼でき時間を守る猫の公務員"},
+        reason: {zh: "你们都重视传统和规则", en: "You both value traditions and rules", ja: "あなたたちは伝統と規則を重視します"}
+    },
+    "ISFJ": {
+        name: {zh: "守护者波斯猫", en: "Protector Persian", ja: "守護者のペルシャ猫"},
+        image: "https://cdn.pixabay.com/photo/2015/01/31/12/36/cat-618470_640.jpg",
+        description: {zh: "温柔顾家的猫中护士", en: "The feline nurse who's gentle and family-oriented", ja: "優しく家庭的な猫の看護師"},
+        reason: {zh: "你们都乐于照顾他人", en: "You both enjoy taking care of others", ja: "あなたたちは他人の世話をするのが好きです"}
+    },
+    "ESTJ": {
+        name: {zh: "管理者美国短毛猫", en: "Manager American Shorthair", ja: "管理者のアメリカンショートヘア"},
+        image: "https://cdn.pixabay.com/photo/2017/03/14/14/49/cat-2143332_640.jpg",
+        description: {zh: "效率至上的猫中项目经理", en: "The feline project manager who prioritizes efficiency", ja: "効率を最優先する猫のプロジェクトマネージャー"},
+        reason: {zh: "你们都擅长组织和执行", en: "You both excel at organizing and executing", ja: "あなたたちは組織化と実行が得意です"}
+    },
+    "ESFJ": {
+        name: {zh: "照顾者加菲猫", en: "Caregiver Garfield", ja: "世話好きのガーフィールド"},
+        image: "https://cdn.pixabay.com/photo/2015/11/16/22/14/cat-1046544_640.jpg",
+        description: {zh: "温暖贴心的猫中派对策划", en: "The feline party planner who's warm and considerate", ja: "温かく思いやりがある猫のパーティープランナー"},
+        reason: {zh: "你们都热爱社交和照顾他人", en: "You both love socializing and caring for others", ja: "あなたたちは社交と他人の世話をするのが大好きです"}
+    },
+    "ISTP": {
+        name: {zh: "巧匠型豹猫", en: "Craftsman Bengal", ja: "職人気質のベンガル"},
+        image: "https://cdn.pixabay.com/photo/2017/01/20/21/22/cat-1996421_640.jpg",
+        description: {zh: "冷静沉着的猫中机械师", en: "The feline mechanic who's calm and composed", ja: "冷静沈着な猫の整備士"},
+        reason: {zh: "你们都擅长解决实际问题", en: "You both are good at solving practical problems", ja: "あなたたちは実際的な問題を解決するのが得意です"}
+    },
+    "ISFP": {
+        name: {zh: "艺术家金吉拉猫", en: "Artist Chinchilla", ja: "芸術家のチンチラ"},
+        image: "https://cdn.pixabay.com/photo/2014/04/13/20/49/cat-323262_640.jpg",
+        description: {zh: "敏感细腻的猫中画家", en: "The feline painter who's sensitive and delicate", ja: "敏感で繊細な猫の画家"},
+        reason: {zh: "你们都重视当下的美感体验", en: "You both value present aesthetic experiences", ja: "あなたたちは現在の美的体験を重視します"}
+    },
+    "ESTP": {
+        name: {zh: "冒险家孟加拉猫", en: "Adventurer Bengal", ja: "冒険家のベンガル"},
+        image: "https://cdn.pixabay.com/photo/2015/04/23/21/59/cat-736877_640.jpg",
+        description: {zh: "活力四射的猫中运动员", en: "The feline athlete full of vitality", ja: "活力に満ちた猫の運動選手"},
+        reason: {zh: "你们都热爱冒险和刺激", en: "You both love adventure and excitement", ja: "あなたたちは冒険と刺激が大好きです"}
+    },
+    "ESFP": {
+        name: {zh: "表演者土耳其安哥拉猫", en: "Performer Turkish Angora", ja: "パフォーマーのターキッシュアンゴラ"},
+        image: "https://cdn.pixabay.com/photo/2015/01/31/12/36/cat-618470_640.jpg",
+        description: {zh: "魅力十足的猫中明星", en: "The feline star with charming charisma", ja: "魅力たっぷりの猫のスター"},
+        reason: {zh: "你们都擅长活跃气氛", en: "You both are good at livening up the atmosphere", ja: "あなたたちは雰囲気を盛り上げるのが得意です"}
+    },
+    "default": {
+        name: {zh: "中华气死猫", en: "Chinese Qi-Si Cat", ja: "チャイニーズ・チース猫"},
+        image: "https://cdn.pixabay.com/photo/2014/04/13/20/49/cat-323262_640.jpg",
+        description: {zh: "又懒又馋但治愈力MAX", en: "Lazy and greedy but with MAX healing power", ja: "怠け者で食いしん坊だが、癒し効果MAX"},
+        reason: {zh: "你们组合起来就是'躺平界'的黄金CP", en: "Together you are the golden CP of 'lying flat'", ja: "あなたたちの組み合わせは「寝そべり界」の黄金カップルです"}
+    }
+}
             },
             methods: {
                 startTest(type) {
@@ -536,7 +682,7 @@
                 saveToHistory() {
                     const historyItem = {
                         date: new Date().toLocaleString(),
-                        catName: this.resultCat.name,
+                        catName: this.resultCat.name[this.language],
                         mbtiType: this.mbtiType,
                         result: this.resultCat
                     };
