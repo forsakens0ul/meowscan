@@ -225,6 +225,8 @@
                 visitCount: 0,
                 visitorCount: 0,
                 testHistory: [],
+                lastVisitTime: null,
+                visitorId: null,
                 translations: {
                     zh: {
                         title: '喵星人性格鉴定书',
@@ -617,31 +619,22 @@
         this.stage = 'test';
         this.currentQuestion = 0;
         this.mbtiType = '';
-        // 初始化维度统计
         this.mbtiCounts = {
-            E: 0,
-            I: 0,
-            N: 0,
-            S: 0,
-            T: 0,
-            F: 0,
-            J: 0,
-            P: 0
+            E: 0, I: 0, N: 0, S: 0,
+            T: 0, F: 0, J: 0, P: 0
         };
+        this.trackEvent('start_test', { test_type: type });
     },
     answerQuestion(type) {
-        // 统计每个维度的选择次数
         this.mbtiCounts[type]++;
         
         if (this.currentQuestion < this.mbtiQuestions.length - 1) {
             this.currentQuestion++;
         } else {
-            // 根据统计结果确定最终MBTI类型
             this.determineMBTIType();
         }
     },
     determineMBTIType() {
-        // 根据多数结果确定每个维度的类型
         const EI = this.mbtiCounts.E > this.mbtiCounts.I ? 'E' : 'I';
         const NS = this.mbtiCounts.N > this.mbtiCounts.S ? 'N' : 'S';
         const TF = this.mbtiCounts.T > this.mbtiCounts.F ? 'T' : 'F';
@@ -655,11 +648,9 @@
                         alert(this.translations[this.language].enterBirthInfo);
                         return;
                     }
-                    // 简化的八字计算（实际应调用专业库）
                     const month = new Date(this.birthDate).getMonth() + 1;
                     const day = new Date(this.birthDate).getDate();
                     
-                    // 根据出生日期生成MBTI类型
                     const types = ["INTJ", "INTP", "ENTJ", "ENTP", "INFJ", "INFP", "ENFJ", "ENFP", 
                                   "ISTJ", "ISFJ", "ESTJ", "ESFJ", "ISTP", "ISFP", "ESTP", "ESFP"];
                     const index = (month * day) % types.length;
@@ -672,10 +663,19 @@
                     this.stage = 'result';
                     setTimeout(() => { this.showAd = true }, 2000);
                     
-                    // 保存测试结果到历史记录
                     this.saveToHistory();
+                    
+                    this.trackEvent('test_complete', {
+                        test_type: this.testType,
+                        result_type: this.mbtiType
+                    });
                 },
                 shareResult() {
+                    this.trackEvent('share_result', {
+                        test_type: this.testType,
+                        result_type: this.mbtiType
+                    });
+                    
                     alert(this.translations[this.language].share + "\n" + 
                           "实际项目需接入微信SDK或分享API");
                 },
@@ -694,59 +694,89 @@
                     this.resultCat = this.testHistory[index].result;
                     this.stage = 'result';
                 },
-                recordVisit() {
-                    // 使用浏览器指纹识别访客
-                    const visitorId = this.getVisitorId();
-                    
-                    // 检查是否是新访客
-                    const lastVisit = localStorage.getItem('lastVisit');
+                updateVisitStats: async function() {
+                    try {
+                        await fetch('/api/personality-analytics', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                event: 'page_view',
+                                data: {
+                                    page_title: '喵星人性格鉴定书',
+                                    page_location: window.location.href,
+                                    page_path: window.location.pathname
+                                }
+                            })
+                        });
+
                     const now = new Date().getTime();
-                    
-                    // 更新访问量
-                    this.visitCount = parseInt(localStorage.getItem('visitCount') || 0) + 1;
-                    localStorage.setItem('visitCount', this.visitCount);
-                    
-                    // 如果是新访客或超过24小时未访问
-                    if (!lastVisit || (now - lastVisit) > 24 * 60 * 60 * 1000) {
-                        this.visitorCount = parseInt(localStorage.getItem('visitorCount') || 0) + 1;
-                        localStorage.setItem('visitorCount', this.visitorCount);
-                        localStorage.setItem('lastVisit', now);
+                        const lastVisit = localStorage.getItem('lastVisitTime');
+                        const visitorId = localStorage.getItem('visitorId');
+                        
+                        if (!visitorId) {
+                            const newVisitorId = 'visitor_' + Math.random().toString(36).substr(2, 9);
+                            localStorage.setItem('visitorId', newVisitorId);
+                            this.visitorId = newVisitorId;
+                            
+                            const currentVisitors = parseInt(localStorage.getItem('visitorCount') || '0');
+                            localStorage.setItem('visitorCount', currentVisitors + 1);
+                            this.visitorCount = currentVisitors + 1;
+                        } else {
+                            this.visitorId = visitorId;
+                        }
+                        
+                        const currentVisits = parseInt(localStorage.getItem('visitCount') || '0');
+                        localStorage.setItem('visitCount', currentVisits + 1);
+                        this.visitCount = currentVisits + 1;
+                        
+                        localStorage.setItem('lastVisitTime', now);
+                        this.lastVisitTime = now;
+                        
+                        if (!lastVisit || (now - parseInt(lastVisit)) > 24 * 60 * 60 * 1000) {
+                            const currentVisitors = parseInt(localStorage.getItem('visitorCount') || '0');
+                            localStorage.setItem('visitorCount', currentVisitors + 1);
+                            this.visitorCount = currentVisitors + 1;
+                        }
+                    } catch (error) {
+                        console.error('统计更新失败:', error);
                     }
-                    
-                    // 实际项目中应该发送到后端服务器进行更准确的统计
-                    // this.sendStatsToServer(visitorId);
                 },
-                getVisitorId() {
-                    // 生成简单的访客ID（实际项目应使用更复杂的指纹算法）
-                    let visitorId = localStorage.getItem('visitorId');
-                    if (!visitorId) {
-                        visitorId = 'visitor-' + Math.random().toString(36).substr(2, 9);
-                        localStorage.setItem('visitorId', visitorId);
+                trackEvent: async function(eventName, eventParams = {}) {
+                    try {
+                        await fetch('/api/personality-analytics', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                event: eventName,
+                                data: eventParams
+                            })
+                        });
+                    } catch (error) {
+                        console.error('事件跟踪失败:', error);
                     }
-                    return visitorId;
                 },
-                loadStats() {
-                    // 从本地存储加载统计数据
-                    this.visitCount = parseInt(localStorage.getItem('visitCount') || 0);
-                    this.visitorCount = parseInt(localStorage.getItem('visitorCount') || 0);
-                    
-                    // 加载历史记录
-                    const savedHistory = localStorage.getItem('catTestHistory');
-                    if (savedHistory) {
-                        this.testHistory = JSON.parse(savedHistory);
-                    }
+                loadVisitStats() {
+                    this.visitCount = parseInt(localStorage.getItem('visitCount') || '0');
+                    this.visitorCount = parseInt(localStorage.getItem('visitorCount') || '0');
+                    this.lastVisitTime = localStorage.getItem('lastVisitTime');
+                    this.visitorId = localStorage.getItem('visitorId');
                 }
             },
             mounted() {
-                // 从本地存储加载语言偏好
                 const savedLang = localStorage.getItem('catTestLang');
                 if (savedLang) this.language = savedLang;
                 
-                // 加载统计数据和历史记录
-                this.loadStats();
+                this.loadVisitStats();
+                this.updateVisitStats();
                 
-                // 初始记录访问
-                this.recordVisit();
+                const savedHistory = localStorage.getItem('catTestHistory');
+                if (savedHistory) {
+                    this.testHistory = JSON.parse(savedHistory);
+                }
             },
             watch: {
                 language(newLang) {
